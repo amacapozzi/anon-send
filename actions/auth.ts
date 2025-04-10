@@ -5,7 +5,7 @@ import { signUpSchema } from "@/schemas/auth";
 import { SignUpFormValues } from "@/types/auth";
 import { saltRounds } from "@/consts/auth";
 
-export const SignUp = async (data: SignUpFormValues) => {
+export const registerAccount = async (data: SignUpFormValues) => {
   try {
     const { password, alias, confirmPassword } = data;
 
