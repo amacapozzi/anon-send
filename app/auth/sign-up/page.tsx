@@ -1,7 +1,9 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { Eye, LogIn, Shuffle } from "lucide-react";
+import { Eye, LoaderIcon, LogIn, Shuffle } from "lucide-react";
 import Link from "next/link";
+import { registerAccount } from "@/actions/auth";
+import { Toaster, toast } from "sonner";
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -22,7 +24,7 @@ export default function SignUp() {
     control,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, isLoading },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -32,7 +34,35 @@ export default function SignUp() {
     },
   });
   const onSubmit: SubmitHandler<SignUpFormValues> = async (data) => {
-    console.log(data);
+    if (!agreed) {
+      toast.error("Could not be registered", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+        description: "You must agree to the terms and conditions",
+      });
+      return;
+    }
+
+    const { success, error } = await registerAccount(data);
+
+    if (success) {
+      toast.success("User created successfully", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+      });
+    } else {
+      toast.error("Could not be registered", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+        description: error?.toString() || "An unexpected error occurred.",
+      });
+    }
   };
 
   const [showPassword, setShowPassword] = useState(false);
@@ -49,8 +79,45 @@ export default function SignUp() {
     setValue("alias", alias);
   }, [alias, setValue]);
 
+  useEffect(() => {
+    if (errors.alias) {
+      toast.error("Could not be registered", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+        description: errors.alias.message,
+      });
+      return;
+    }
+
+    if (errors.password) {
+      toast.error("Could not be registered", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+        description: errors.password.message,
+      });
+      return;
+    }
+
+    if (errors.confirmPassword) {
+      toast.error("Could not be registered", {
+        style: {
+          background: "#141416",
+          borderColor: "#3a3a48",
+        },
+        description: errors.confirmPassword.message,
+      });
+      return;
+    }
+  }, [errors]);
+
   return (
     <div className="flex h-screen">
+      <Toaster theme="dark" position="top-right" />
+
       <div className="blur-[120px] bg-violet-300 w-full h-10 absolute z-[-1] top-0 right-1 opacity-55"></div>
 
       <AuthSlider sliderInterval={5000} />
@@ -85,7 +152,7 @@ export default function SignUp() {
                     <TooltipTrigger
                       type="button"
                       onClick={handleRandomAlias}
-                      className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2"
+                      className="absolute hover:text-[#5d4ea9] cursor-pointer right-3 top-1/2 transform -translate-y-1/2"
                     >
                       <Shuffle className={`h-5 w-5`} />
                     </TooltipTrigger>
@@ -142,11 +209,12 @@ export default function SignUp() {
             </div>
 
             <button
+              disabled={isLoading}
               type="submit"
               className="w-full cursor-pointer inline-flex flex-row items-center justify-center my-4 font-[family-name:var(--font-geist-sans)] bg-[#5150c8] p-3 rounded text-white font-medium transition-colors"
             >
               Create account
-              <LogIn className="ml-2 h-4 w-4" />
+              <LogIn className="ml-2 h-5 w-5" />
             </button>
           </form>
         </div>
