@@ -3,16 +3,34 @@ import bcryptjs from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { signUpSchema } from "@/schemas/auth";
 import { SignUpFormValues } from "@/types/auth";
-import { saltRounds } from "@/consts/auth";
+import { saltRounds, maxPasswordUsedCount } from "@/consts/auth";
 
 export const registerAccount = async (data: SignUpFormValues) => {
   try {
-    const { password, alias, confirmPassword } = data;
+    const { password, alias } = data;
 
     const { success, error } = signUpSchema.safeParse(data);
 
     if (!success) {
       return { success: false, error: error.format() };
+    }
+
+    const passwordUsedCount = await prisma.user.count({
+      where: {
+        password: password,
+      },
+    });
+
+    if (passwordUsedCount >= maxPasswordUsedCount) {
+      return {
+        success: false,
+        error: {
+          password: {
+            message:
+              "This password has been used too many times. Please choose a different one.",
+          },
+        },
+      };
     }
 
     const alreadyExistsAlias = await prisma.user.findFirst({
