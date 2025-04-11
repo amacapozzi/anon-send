@@ -1,10 +1,11 @@
 "use client";
+
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Eye, LoaderIcon, LogIn, Shuffle } from "lucide-react";
 import Link from "next/link";
 import { registerAccount } from "@/actions/auth";
 import { Toaster, toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Tooltip,
@@ -12,19 +13,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import React, { useState } from "react";
 import { generateRandomAlias } from "@/lib/utils";
 import { AuthSlider } from "@/components/auth-slider";
 import { SignUpFormValues } from "@/types/auth";
 import { signUpSchema } from "@/schemas/auth";
 import { AuthInput } from "@/components/auth-input";
+import clsx from "clsx";
 
 export default function SignUp() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+
   const {
     control,
     handleSubmit,
     setValue,
-    formState: { errors, isLoading },
+    formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -33,6 +37,12 @@ export default function SignUp() {
       confirmPassword: "",
     },
   });
+
+  const handleRandomAlias = useCallback(() => {
+    const alias = generateRandomAlias();
+    setValue("alias", alias);
+  }, [setValue]);
+
   const onSubmit: SubmitHandler<SignUpFormValues> = async (data) => {
     if (!agreed) {
       toast.error("Could not be registered", {
@@ -53,72 +63,42 @@ export default function SignUp() {
           background: "#141416",
           borderColor: "#3a3a48",
         },
+        description: "You can now log in to your account.",
       });
     } else {
+      const key = Object.keys(error ?? {})[0];
+      const description = (error as any)?.[key]?.message ?? "Unexpected error.";
       toast.error("Could not be registered", {
+        description,
         style: {
           background: "#141416",
           borderColor: "#3a3a48",
         },
-        description: error?.toString() || "An unexpected error occurred.",
       });
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [alias, setAlias] = useState("");
-
-  const handleRandomAlias = (e: any) => {
-    e.preventDefault();
-    const randomAlias = generateRandomAlias();
-    setAlias(randomAlias);
-  };
-
   useEffect(() => {
-    setValue("alias", alias);
-  }, [alias, setValue]);
+    const firstError =
+      errors.alias?.message ||
+      errors.password?.message ||
+      errors.confirmPassword?.message;
 
-  useEffect(() => {
-    if (errors.alias) {
+    if (firstError) {
       toast.error("Could not be registered", {
+        description: firstError,
         style: {
           background: "#141416",
           borderColor: "#3a3a48",
         },
-        description: errors.alias.message,
       });
-      return;
-    }
-
-    if (errors.password) {
-      toast.error("Could not be registered", {
-        style: {
-          background: "#141416",
-          borderColor: "#3a3a48",
-        },
-        description: errors.password.message,
-      });
-      return;
-    }
-
-    if (errors.confirmPassword) {
-      toast.error("Could not be registered", {
-        style: {
-          background: "#141416",
-          borderColor: "#3a3a48",
-        },
-        description: errors.confirmPassword.message,
-      });
-      return;
     }
   }, [errors]);
 
   return (
     <div className="flex h-screen">
       <Toaster theme="dark" position="top-right" />
-
-      <div className="blur-[120px] bg-violet-300 w-full h-10 absolute z-[-1] top-0 right-1 opacity-55"></div>
+      <div className="blur-[120px] bg-violet-300 w-full h-10 absolute z-[-1] top-0 right-1 opacity-55" />
 
       <AuthSlider sliderInterval={5000} />
 
@@ -127,41 +107,36 @@ export default function SignUp() {
           <h1 className="text-4xl font-bold text-white mb-2">
             Create an account
           </h1>
-          <p className="text-gray-400 mb-8  font-[family-name:var(--font-geist-sans)]">
+          <p className="text-gray-400 mb-8">
             Already have an account?{" "}
             <Link href="#" className="text-white hover:underline">
               Log in
             </Link>
           </p>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-4  font-[family-name:var(--font-geist-sans)]"
-          >
-            <div className="grid grid-cols-1 md:grid-cols:1 ap-4">
-              <div className="relative">
-                <AuthInput
-                  type="text"
-                  control={control}
-                  name="alias"
-                  placeholder="Alias"
-                  className="w-full py-6 rounded bg-[#2a2a38] text-white border border-[#3a3a48] focus:outline-none focus:ring-2 focus:ring-[#5d4ea9]"
-                />
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger
-                      type="button"
-                      onClick={handleRandomAlias}
-                      className="absolute hover:text-[#5d4ea9] cursor-pointer right-3 top-1/2 transform -translate-y-1/2"
-                    >
-                      <Shuffle className={`h-5 w-5`} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Geneate random Alias</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="relative">
+              <AuthInput
+                type="text"
+                control={control}
+                name="alias"
+                placeholder="Alias"
+                className="w-full py-6 rounded bg-[#2a2a38] text-white border border-[#3a3a48] focus:outline-none focus:ring-2 focus:ring-[#5d4ea9]"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger
+                    type="button"
+                    onClick={handleRandomAlias}
+                    className="absolute hover:text-[#5d4ea9] cursor-pointer right-3 top-1/2 transform -translate-y-1/2"
+                  >
+                    <Shuffle className="h-5 w-5" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Generate random Alias</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <div className="relative">
@@ -174,25 +149,25 @@ export default function SignUp() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={`absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 ${
+                onClick={() => setShowPassword((prev) => !prev)}
+                className={clsx(
+                  "absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2",
                   showPassword ? "text-[#5d4ea9]" : "text-gray-400"
-                }`}
+                )}
               >
-                <Eye className={`h-5 w-5`} />
+                <Eye className="h-5 w-5" />
               </button>
             </div>
-            <div>
-              <AuthInput
-                control={control}
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm password"
-                className="w-full py-6 rounded bg-[#2a2a38] text-white border border-[#3a3a48] focus:outline-none focus:ring-2 focus:ring-[#5d4ea9]"
-              />
-            </div>
 
-            <div className="flex items-center  font-[family-name:var(--font-geist-sans)]">
+            <AuthInput
+              control={control}
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm password"
+              className="w-full py-6 rounded bg-[#2a2a38] text-white border border-[#3a3a48] focus:outline-none focus:ring-2 focus:ring-[#5d4ea9]"
+            />
+
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 id="terms"
@@ -200,7 +175,7 @@ export default function SignUp() {
                 onChange={() => setAgreed(!agreed)}
                 className="h-4 w-4 rounded border-gray-600 text-[#5d4ea9] focus:ring-[#5d4ea9]"
               />
-              <label htmlFor="terms" className="ml-2 text-sm text-gray-400 ">
+              <label htmlFor="terms" className="ml-2 text-sm text-gray-400">
                 I agree to the{" "}
                 <Link href="#" className="text-white hover:underline">
                   Terms & Conditions
@@ -209,12 +184,18 @@ export default function SignUp() {
             </div>
 
             <button
-              disabled={isLoading}
+              disabled={isSubmitting}
               type="submit"
-              className="w-full cursor-pointer inline-flex flex-row items-center justify-center my-4 font-[family-name:var(--font-geist-sans)] bg-[#5150c8] p-3 rounded text-white font-medium transition-colors"
+              className="w-full cursor-pointer inline-flex items-center justify-center my-4 bg-[#5150c8] p-3 rounded text-white font-medium transition-colors"
             >
-              Create account
-              <LogIn className="ml-2 h-5 w-5" />
+              {isSubmitting ? (
+                <LoaderIcon className="animate-spin h-5 w-5" />
+              ) : (
+                <>
+                  Create account
+                  <LogIn className="ml-2 h-5 w-5" />
+                </>
+              )}
             </button>
           </form>
         </div>
