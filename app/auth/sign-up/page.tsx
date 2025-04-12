@@ -19,6 +19,7 @@ import { SignUpFormValues } from "@/types/auth";
 import { signUpSchema } from "@/schemas/auth";
 import { AuthInput } from "@/components/auth-input";
 import clsx from "clsx";
+import { Button } from "@/components/ui/button";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +64,7 @@ export default function SignUp() {
           background: "#141416",
           borderColor: "#3a3a48",
         },
-        description: "You can now log in to your account.",
+        description: "Please wait while we redirect you to your dashboard...",
       });
     } else {
       const key = Object.keys(error ?? {})[0];
@@ -96,7 +97,7 @@ export default function SignUp() {
   }, [errors]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen font-[family-name:var(--font-geist-sans)]">
       <Toaster theme="dark" position="top-right" />
       <div className="blur-[120px] bg-violet-300 w-full h-10 absolute z-[-1] top-0 right-1 opacity-55" />
 
@@ -109,7 +110,7 @@ export default function SignUp() {
           </h1>
           <p className="text-gray-400 mb-8">
             Already have an account?{" "}
-            <Link href="#" className="text-white hover:underline">
+            <Link href="/auth/sign-in" className="text-white hover:underline">
               Log in
             </Link>
           </p>
@@ -183,10 +184,10 @@ export default function SignUp() {
               </label>
             </div>
 
-            <button
+            <Button
               disabled={isSubmitting}
               type="submit"
-              className="w-full cursor-pointer inline-flex items-center justify-center my-4 bg-[#5150c8] p-3 rounded text-white font-medium transition-colors"
+              className="w-full cursor-pointer hover:bg-[#5150c8]/80 text-[15px] inline-flex items-center justify-center my-4 bg-[#5150c8] py-6 rounded text-white transition-colors"
             >
               {isSubmitting ? (
                 <LoaderIcon className="animate-spin h-5 w-5" />
@@ -196,7 +197,7 @@ export default function SignUp() {
                   <LogIn className="ml-2 h-5 w-5" />
                 </>
               )}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

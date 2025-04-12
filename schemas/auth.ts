@@ -14,3 +14,12 @@ export const signUpSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
+export const signInSchema = z.object({
+  alias: z
+    .string({ required_error: "Alias is required" })
+    .min(3, { message: "Alias must be at least 3 characters long" }),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(3, { message: "Password must be at least 3 characters long" }),
+});
