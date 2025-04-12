@@ -1,9 +1,12 @@
 "use server";
 import bcryptjs from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { signUpSchema } from "@/schemas/auth";
-import { SignUpFormValues } from "@/types/auth";
+import { signInSchema, signUpSchema } from "@/schemas/auth";
+import { SignInFormValues, SignUpFormValues } from "@/types/auth";
 import { saltRounds, maxPasswordUsedCount } from "@/consts/auth";
+import { signToken } from "@/lib/jwt";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export const registerAccount = async (data: SignUpFormValues) => {
   try {
@@ -20,6 +23,8 @@ export const registerAccount = async (data: SignUpFormValues) => {
         password: password,
       },
     });
+
+    console.log("Password used count:", passwordUsedCount);
 
     if (passwordUsedCount >= maxPasswordUsedCount) {
       return {
@@ -62,5 +67,65 @@ export const registerAccount = async (data: SignUpFormValues) => {
   } catch (error) {
     console.error("Error in signUp function:", error);
     return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+export const loginAccount = async (data: SignInFormValues) => {
+  try {
+    console.log("Login data:", data);
+
+    const { password, alias } = data;
+
+    const { success, error } = signInSchema.safeParse(data);
+
+    if (!success) {
+      console.error("Validation error:", error.format());
+      return { success: false, error: error.format() };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        alias,
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "Invalid alias or password" };
+    }
+
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return { success: false, error: "Invalid alias or password" };
+    }
+
+    const payload = {
+      id: user.id,
+      alias: user.alias,
+    };
+
+    const token = signToken(payload, "24h");
+
+    await setCookie(token);
+    console.log("Cookie set successfully");
+
+    return { success: true, message: "Login successful" };
+  } catch (error) {
+    console.error("Error in login function:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+const setCookie = async (token: string) => {
+  try {
+    (await cookies()).set("session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 1 day
+      path: "/",
+    });
+  } catch (error) {
+    console.error("Error setting cookie:", error);
   }
 };
