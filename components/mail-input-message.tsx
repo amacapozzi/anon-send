@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { type SendMessageData } from "@/types/mail";
 
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,9 +39,13 @@ interface Attachment {
   name: string;
 }
 
-export default function EmailInput() {
+interface EmailInputProps {
+  message: string;
+  handleChange: (key: keyof SendMessageData, value: any) => void;
+}
+
+export default function EmailInput({ message, handleChange }: EmailInputProps) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [message, setMessage] = useState("");
   const [expirationTime, setExpirationTime] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +70,6 @@ export default function EmailInput() {
   return (
     <TooltipProvider>
       <div className="rounded-lg border bg-background">
-        {/* Attachments area */}
         {attachments.length > 0 && (
           <div className="p-2 flex flex-wrap gap-2">
             {attachments.map((file) => (
@@ -111,8 +115,8 @@ export default function EmailInput() {
 
         <Textarea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Escribe tu mensaje aquí..."
+          onChange={(e) => handleChange("message", e.target.value)}
+          placeholder="Type your message here..."
           className="min-h-[120px] border-0 focus-visible:ring-0 resize-none"
         />
 
