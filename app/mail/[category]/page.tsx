@@ -1,4 +1,5 @@
 import MailLayout from "@/layouts/mail-layout";
+import { SearchUserCommandDialog } from "@/components/commands/search-user";
 
 export default async function Page({
   params,
@@ -9,7 +10,7 @@ export default async function Page({
 
   return (
     <MailLayout>
-      <div>a</div>
+      <SearchUserCommandDialog />
     </MailLayout>
   );
 }
