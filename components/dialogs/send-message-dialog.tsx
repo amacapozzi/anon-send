@@ -1,3 +1,4 @@
+"use client";
 import {
   Dialog,
   DialogClose,
@@ -9,11 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmailInput from "@/components/mail-input-message";
-
-interface User {
-  username: string;
-  avatarURL: string;
-}
+import { useState } from "react";
+import { type SendMessageData } from "@/types/mail";
+import { type User } from "@/types/user";
 
 interface DialogProps {
   open: boolean;
@@ -28,6 +27,16 @@ export const SendMessageDialog = ({
   selectedUser,
   setSelectedUser,
 }: DialogProps) => {
+  const [messageData, setMessageData] = useState<SendMessageData>({
+    title: "",
+    message: "",
+    file: null,
+  });
+
+  const handleChange = (key: keyof SendMessageData, value: any) => {
+    setMessageData((prev) => ({ ...prev, [key]: value }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={() => setSelectedUser(null)}>
       <DialogContent className="sm:max-w-md">
@@ -46,8 +55,15 @@ export const SendMessageDialog = ({
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
-          <Input type="text" placeholder="Title" />
-          <EmailInput />
+          <Input
+            onChange={(e) => handleChange("title", e.target.value)}
+            type="text"
+            placeholder="Title"
+          />
+          <EmailInput
+            handleChange={handleChange}
+            message={messageData.message}
+          />
         </div>
         <DialogFooter>
           <DialogClose asChild>
