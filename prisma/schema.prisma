@@ -12,24 +12,45 @@ datasource db {
 }
 
 model User {
-    id        String    @id @default(cuid())
-    alias     String    @unique
+    id        String        @id @default(cuid())
+    alias     String        @unique
     password  String
-    createdAt DateTime  @default(now())
-    messages  Message[]
+    createdAt DateTime      @default(now())
+    messages  Message[]     @relation("SentMessages")
+    views     MessageView[]
+
+    blocked   BlockedUser[] @relation("Blocker")
+    blockedBy BlockedUser[] @relation("Blocked")
+}
+
+model BlockedUser {
+    id String @id @default(cuid())
+
+    blockerId String
+    blocker   User   @relation("Blocker", fields: [blockerId], references: [id])
+
+    blockedId String
+    blocked   User   @relation("Blocked", fields: [blockedId], references: [id])
+
+    createdAt DateTime @default(now())
+
+    @@unique([blockerId, blockedId])
 }
 
 model Message {
-    id        String    @id @default(cuid())
-    encrypted String
+    id        String        @id @default(cuid())
+    subject   String
+    body      String
+    recipient String
+    encrypted Boolean       @default(false)
     senderId  String?
-    sender    User?     @relation(fields: [senderId], references: [id])
+    sender    User?         @relation("SentMessages", fields: [senderId], references: [id])
     files     File[]
-    createdAt DateTime  @default(now())
-    expiresAt DateTime?
-    maxViews  Int?
-    views     Int       @default(0)
-    isDeleted Boolean   @default(false)
+    views     MessageView[]
+    createdAt DateTime      @default(now())
+    expiresAt DateTime? // for autodestruct
+    maxViews  Int? // max allowed views
+    isDeleted Boolean       @default(false)
 }
 
 model File {
@@ -37,8 +58,19 @@ model File {
     filename   String
     mimetype   String
     size       Int
-    encrypted  String
+    encrypted  Boolean  @default(false)
     messageId  String
     message    Message  @relation(fields: [messageId], references: [id])
     uploadedAt DateTime @default(now())
+}
+
+model MessageView {
+    id        String   @id @default(cuid())
+    messageId String
+    message   Message  @relation(fields: [messageId], references: [id])
+    userId    String?
+    user      User?    @relation(fields: [userId], references: [id])
+    viewedAt  DateTime @default(now())
+    ipAddress String?
+    userAgent String?
 }
