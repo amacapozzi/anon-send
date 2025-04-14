@@ -40,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const handleClick = useCallback(
     (item: { title: string; url: string }) => {
-      router.push(item.url); // ya no usamos query params
+      router.push(item.url);
     },
     [router]
   );
