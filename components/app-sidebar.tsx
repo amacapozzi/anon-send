@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Command } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { NavUser } from "@/components/nav-user";
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { mailData } from "@/consts/mail";
+import { MessageCircle } from "lucide-react";
 
 // This is sample data
 
@@ -45,6 +45,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     [router]
   );
 
+  const handleSimulateKeyboardShortcut = () => {
+    const event = new KeyboardEvent("keydown", {
+      key: "j",
+      ctrlKey: true,
+      bubbles: true,
+    });
+
+    document.dispatchEvent(event);
+  };
+
   return (
     <Sidebar
       collapsible="icon"
@@ -63,8 +73,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
                 <a href="#">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Command className="size-4" />
+                  <div
+                    onClick={handleSimulateKeyboardShortcut}
+                    className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                  >
+                    <MessageCircle className="size-4" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">Acme Inc</span>
