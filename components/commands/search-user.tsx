@@ -9,15 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { SendMessageDialog } from "../dialogs/send-message-dialog";
 
 type User = {
   username: string;
@@ -78,11 +70,6 @@ export function SearchUserCommandDialog() {
   };
 
   const handleSend = () => {
-    console.log("Mensaje:", message);
-    console.log("Archivo:", file);
-    console.log("Para:", selectedUser);
-    // aquí podrías llamar a una API o algo similar
-    // limpiar estado
     setMessage("");
     setFile(null);
     setSelectedUser(null);
@@ -120,28 +107,12 @@ export function SearchUserCommandDialog() {
         </CommandList>
       </CommandDialog>
 
-      {/* Modal de mensaje */}
-      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enviar mensaje a {selectedUser?.username}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <Textarea
-              placeholder="Escribe tu mensaje..."
-              value={message}
-              onChange={(e: any) => setMessage(e.target.value)}
-            />
-            <Input
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
-            <Button onClick={handleSend} disabled={!message.trim()}>
-              Enviar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SendMessageDialog
+        setOpen={setOpen}
+        selectedUser={selectedUser}
+        setSelectedUser={setSelectedUser}
+        open={!!selectedUser}
+      />
     </>
   );
 }
