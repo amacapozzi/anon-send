@@ -10,9 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmailInput from "@/components/mail-input-message";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type SendMessageData } from "@/types/mail";
 import { type User } from "@/types/user";
+import UserSelect from "@/components/user-select";
+import UserMentionSelector from "@/components/user-select";
 
 interface DialogProps {
   open: boolean;
@@ -37,24 +39,53 @@ export const SendMessageDialog = ({
     setMessageData((prev) => ({ ...prev, [key]: value }));
   };
 
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+
+  const users: User[] = [
+    {
+      id: "1",
+      alias: "FastOtter312",
+      avatarURL:
+        "https://api.dicebear.com/7.x/adventurer/svg?seed=FastOtter312",
+    },
+    {
+      id: "2",
+      alias: "CrazyFalcon891",
+      avatarURL:
+        "https://api.dicebear.com/7.x/adventurer/svg?seed=CrazyFalcon891",
+    },
+    {
+      id: "3",
+      alias: "EpicPanda007",
+      avatarURL:
+        "https://api.dicebear.com/7.x/adventurer/svg?seed=EpicPanda007",
+    },
+    {
+      id: "4",
+      alias: "SilentTiger456",
+      avatarURL:
+        "https://api.dicebear.com/7.x/adventurer/svg?seed=SilentTiger456",
+    },
+    {
+      id: "5",
+      alias: "CoolWolf229",
+      avatarURL: "https://api.dicebear.com/7.x/adventurer/svg?seed=CoolWolf229",
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={() => setSelectedUser(null)}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md font-[family-name:var(--font-geist-sans)]">
         <DialogHeader>
-          <DialogTitle>
-            <div className="inline-flex items-center gap-2">
-              <img
-                src={selectedUser?.avatarURL}
-                alt={selectedUser?.username}
-                className="h-8 w-8 rounded-xl"
-              />
-              <span className="text-sm font-semibold">
-                {selectedUser?.username}
-              </span>
-            </div>
-          </DialogTitle>
+          <DialogTitle>New message</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
+          <UserMentionSelector
+            users={users}
+            placeholder="Type @ to mention users..."
+            selectedUsers={selectedUsers}
+            onChange={setSelectedUsers}
+          />
           <Input
             onChange={(e) => handleChange("title", e.target.value)}
             type="text"
