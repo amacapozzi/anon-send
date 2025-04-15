@@ -20,13 +20,15 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { mailData } from "@/consts/mail";
-import { MessageCircle } from "lucide-react";
+import { AppSidebarOpenMessage } from "@/components/app-sidebar-open-message";
 
 // This is sample data
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const [isOpenDialog, setIsOpenDialog] = React.useState(false);
 
   // Note: I'm using state to show active item.
   // IRL you should use the url/router.
@@ -45,14 +47,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     [router]
   );
 
-  const handleSimulateKeyboardShortcut = () => {
-    const event = new KeyboardEvent("keydown", {
-      key: "j",
-      ctrlKey: true,
-      bubbles: true,
-    });
-
-    document.dispatchEvent(event);
+  const handleOpenDialog = () => {
+    setIsOpenDialog(true);
   };
 
   return (
@@ -72,18 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                <a href="#">
-                  <div
-                    onClick={handleSimulateKeyboardShortcut}
-                    className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-                  >
-                    <MessageCircle className="size-4" />
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
-                  </div>
-                </a>
+                <AppSidebarOpenMessage />
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
