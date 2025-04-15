@@ -1,4 +1,5 @@
 export interface User {
-  username: string;
+  id: string;
+  alias: string;
   avatarURL: string;
 }
