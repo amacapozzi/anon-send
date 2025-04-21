@@ -1,40 +1,73 @@
 "use server";
+
 import prisma from "@/lib/prisma";
 import { mailSchema } from "@/schemas/mail";
 import { Mail } from "@/types/mail";
+import { validateRecipients } from "@/utils/mail";
+import { getCurrentUserServer } from "@/lib/auth";
 
 export const sendMail = async (data: Mail) => {
   try {
+    const user = await getCurrentUserServer();
+
     const { success, error } = mailSchema.safeParse(data);
 
     if (!success) {
       console.error("Validation error:", error.format());
+
+      const { errors } = error;
+
+      console.log(errors);
+
       return { success: false, error: error.format() };
     }
 
-    const isValidRecipient = await prisma.user.findFirst({
-      where: {
-        alias: data.recipient,
-      },
-    });
-    if (!isValidRecipient) {
+    const { valid, invalid } = await validateRecipients(
+      data.recipients as string[]
+    );
+
+    console.log(data.recipients);
+
+    if (invalid.length > 0) {
       return {
         success: false,
-        error: "Recipient not found",
+        message: "The following recipients do not exist",
+        invalid,
       };
     }
 
-    await prisma.message.create({
+    const message = await prisma.message.create({
       data: {
-        senderId: data.senderId,
-        recipient: data.recipient,
         subject: data.subject,
         body: data.body,
-        files: data.files,
+        encrypted: false,
+        senderId: user?.id,
+        expiresAt: data.expiresAt ?? null,
+        maxViews: data.maxViews ?? null,
+        files: {
+          create:
+            data.files?.map((file) => ({
+              filename: file.filename,
+              mimetype: file.mimetype,
+              size: file.size,
+              encrypted: false,
+            })) || [],
+        },
+        recipients: {
+          create: valid.map((user) => ({
+            userId: user.id,
+          })),
+        },
       },
     });
 
-    return { success: true, message: "Mail sent successfully" };
+    console.log(message);
+
+    return {
+      success: true,
+      message: "Mail sent successfully",
+      messageId: message.id,
+    };
   } catch (error) {
     console.error("Error sending mail:", error);
     return { success: false, error: "An unexpected error occurred." };
