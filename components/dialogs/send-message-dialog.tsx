@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Dialog,
   DialogClose,
@@ -10,14 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmailInput from "@/components/mail-input-message";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import UserMentionSelector from "@/components/user-select";
+import { getPublicUsers } from "@/actions/users";
 import { type SendMessageData } from "@/types/mail";
 import { type User } from "@/types/user";
-import UserSelect from "@/components/user-select";
-import UserMentionSelector from "@/components/user-select";
 
 interface DialogProps {
   open: boolean;
+  handleSendMessage: (messageData: SendMessageData) => void;
   setOpen: (open: boolean) => void;
   selectedUser: User | null;
   setSelectedUser: (user: User | null) => void;
@@ -26,55 +28,58 @@ interface DialogProps {
 export const SendMessageDialog = ({
   open,
   setOpen,
+  handleSendMessage,
   selectedUser,
   setSelectedUser,
 }: DialogProps) => {
   const [messageData, setMessageData] = useState<SendMessageData>({
-    title: "",
-    message: "",
+    subject: "",
+    body: "",
     file: null,
+    recipients: [],
   });
 
-  const handleChange = (key: keyof SendMessageData, value: any) => {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const result = await getPublicUsers();
+      setUsers(result as User[]);
+    };
+    fetchUsers();
+  }, []);
+
+  const selectedUsers = useMemo(
+    () => users.filter((user) => messageData.recipients.includes(user.id)),
+    [users, messageData.recipients]
+  );
+
+  const updateField = <K extends keyof SendMessageData>(
+    key: K,
+    value: SendMessageData[K]
+  ) => {
     setMessageData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const handleUsersChange = (users: User[]) => {
+    updateField(
+      "recipients",
+      users.map((u) => u.id)
+    );
+  };
 
-  const users: User[] = [
-    {
-      id: "1",
-      alias: "FastOtter312",
-      avatarURL:
-        "https://api.dicebear.com/7.x/adventurer/svg?seed=FastOtter312",
-    },
-    {
-      id: "2",
-      alias: "CrazyFalcon891",
-      avatarURL:
-        "https://api.dicebear.com/7.x/adventurer/svg?seed=CrazyFalcon891",
-    },
-    {
-      id: "3",
-      alias: "EpicPanda007",
-      avatarURL:
-        "https://api.dicebear.com/7.x/adventurer/svg?seed=EpicPanda007",
-    },
-    {
-      id: "4",
-      alias: "SilentTiger456",
-      avatarURL:
-        "https://api.dicebear.com/7.x/adventurer/svg?seed=SilentTiger456",
-    },
-    {
-      id: "5",
-      alias: "CoolWolf229",
-      avatarURL: "https://api.dicebear.com/7.x/adventurer/svg?seed=CoolWolf229",
-    },
-  ];
+  const handleClose = () => {
+    setSelectedUser(null);
+    setOpen(false);
+  };
+
+  const handleSubmit = () => {
+    handleSendMessage(messageData);
+    handleClose();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={() => setSelectedUser(null)}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md font-[family-name:var(--font-geist-sans)]">
         <DialogHeader>
           <DialogTitle>New message</DialogTitle>
@@ -82,32 +87,27 @@ export const SendMessageDialog = ({
         <div className="flex flex-col gap-4">
           <UserMentionSelector
             users={users}
-            placeholder="Type @ to mention users..."
             selectedUsers={selectedUsers}
-            onChange={setSelectedUsers}
+            onChange={handleUsersChange}
+            placeholder="Type @ to mention users..."
           />
           <Input
-            onChange={(e) => handleChange("title", e.target.value)}
             type="text"
             placeholder="Title"
+            value={messageData.subject}
+            onChange={(e) => updateField("subject", e.target.value)}
           />
-          <EmailInput
-            handleChange={handleChange}
-            message={messageData.message}
-          />
+          <EmailInput handleChange={updateField} message={messageData.body} />
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button
-              className="cursor-pointer"
-              type="button"
-              variant="secondary"
-            >
+            <Button type="button" variant="secondary">
               Close
             </Button>
           </DialogClose>
           <Button
-            className="cursor-pointer bg-[#1447e6] hover:bg-[#1447e6]/ text-white"
+            onClick={handleSubmit}
+            className="cursor-pointer bg-[#1447e6] text-white"
             type="submit"
           >
             Send message
