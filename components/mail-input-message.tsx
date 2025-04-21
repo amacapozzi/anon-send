@@ -115,7 +115,7 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
 
         <Textarea
           value={message}
-          onChange={(e) => handleChange("message", e.target.value)}
+          onChange={(e) => handleChange("body", e.target.value)}
           placeholder="Type your message here..."
           className="min-h-[120px] border-0 focus-visible:ring-0 resize-none"
         />
