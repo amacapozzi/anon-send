@@ -1,20 +1,9 @@
 "use client";
-
 import type React from "react";
-import { type SendMessageData } from "@/types/mail";
-
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Paperclip,
-  X,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  Timer,
-} from "lucide-react";
+import { Paperclip, X, Timer } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -34,6 +23,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import type { SendMessageData } from "@/types/mail";
+import { formatActions } from "@/consts/formatActionts";
+import { FormatButton } from "@/components/format-button";
+
 interface Attachment {
   id: string;
   name: string;
@@ -50,17 +43,17 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.length) {
       const newFiles = Array.from(e.target.files).map((file) => ({
         id: Math.random().toString(36).substring(7),
         name: file.name,
       }));
-      setAttachments([...attachments, ...newFiles]);
+      setAttachments((prev) => [...prev, ...newFiles]);
     }
   };
 
   const removeAttachment = (id: string) => {
-    setAttachments(attachments.filter((attachment) => attachment.id !== id));
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleAttachClick = () => {
@@ -77,24 +70,7 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
                 key={file.id}
                 className="flex items-center gap-1 bg-muted rounded-md py-1 px-2 text-sm text-muted-foreground"
               >
-                <span className="flex items-center gap-1">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {file.name}
-                </span>
+                <span className="flex items-center gap-1">📄 {file.name}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -114,6 +90,7 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
         )}
 
         <Textarea
+          id="message-textarea"
           value={message}
           onChange={(e) => handleChange("body", e.target.value)}
           placeholder="Type your message here..."
@@ -122,6 +99,7 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 p-2 border-t">
+          {/* Attach */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -131,13 +109,13 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
                 onClick={handleAttachClick}
               >
                 <Paperclip size={18} />
-                <span className="sr-only">Attach file</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Attach file</p>
             </TooltipContent>
           </Tooltip>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -146,52 +124,17 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
             onChange={handleFileChange}
           />
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <Bold size={18} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Bold</p>
-            </TooltipContent>
-          </Tooltip>
+          {Object.entries(formatActions).map(
+            ([key, { icon: Icon, label, onClick }]) => (
+              <FormatButton
+                key={key}
+                icon={<Icon size={18} />}
+                label={label}
+                onClick={onClick}
+              />
+            )
+          )}
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <Italic size={18} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Italic</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <Underline size={18} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Underline</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Timer icon with popover */}
           <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -204,7 +147,6 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
                     }`}
                   >
                     <Timer size={18} />
-                    <span className="sr-only">Elimination time</span>
                   </Button>
                 </PopoverTrigger>
               </TooltipTrigger>
