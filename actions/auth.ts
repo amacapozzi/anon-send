@@ -5,7 +5,6 @@ import { signInSchema, signUpSchema } from "@/schemas/auth";
 import { SignInFormValues, SignUpFormValues } from "@/types/auth";
 import { saltRounds, maxPasswordUsedCount } from "@/consts/auth";
 import { signToken } from "@/lib/jwt";
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 export const registerAccount = async (data: SignUpFormValues) => {
