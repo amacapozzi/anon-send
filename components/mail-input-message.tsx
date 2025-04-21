@@ -1,7 +1,6 @@
 "use client";
 import type React from "react";
-import { useState, useRef } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Paperclip, X, Timer } from "lucide-react";
 import {
@@ -24,8 +23,10 @@ import {
 } from "@/components/ui/tooltip";
 
 import type { SendMessageData } from "@/types/mail";
-import { formatActions } from "@/consts/formatActionts";
 import { FormatButton } from "@/components/format-button";
+import { Bold, Italic, Underline, List } from "lucide-react";
+import { formattingActions } from "@/utils/format";
+import { formatButtons } from "@/consts/formatActionts";
 
 interface Attachment {
   id: string;
@@ -41,6 +42,18 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [expirationTime, setExpirationTime] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      if (
+        !editorRef.current.innerHTML ||
+        editorRef.current.innerHTML === "<br>"
+      ) {
+        editorRef.current.innerHTML = message;
+      }
+    }
+  }, [message]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
@@ -58,6 +71,21 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
 
   const handleAttachClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleEditorChange = () => {
+    if (editorRef.current) {
+      const content = editorRef.current.innerHTML;
+      handleChange("body", content);
+    }
+  };
+
+  const applyFormat = (command: string) => {
+    document.execCommand(command, false);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      handleEditorChange();
+    }
   };
 
   return (
@@ -89,12 +117,14 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
           </div>
         )}
 
-        <Textarea
+        <div
+          ref={editorRef}
           id="message-textarea"
-          value={message}
-          onChange={(e) => handleChange("body", e.target.value)}
-          placeholder="Type your message here..."
-          className="min-h-[120px] border-0 focus-visible:ring-0 resize-none"
+          contentEditable
+          onInput={handleEditorChange}
+          onBlur={handleEditorChange}
+          className="min-h-[120px] p-3 outline-none overflow-auto"
+          style={{ minHeight: "120px" }}
         />
 
         {/* Toolbar */}
@@ -124,17 +154,14 @@ export default function EmailInput({ message, handleChange }: EmailInputProps) {
             onChange={handleFileChange}
           />
 
-          {Object.entries(formatActions).map(
-            ([key, { icon: Icon, label, onClick }]) => (
-              <FormatButton
-                key={key}
-                icon={<Icon size={18} />}
-                label={label}
-                onClick={onClick}
-              />
-            )
-          )}
-
+          {formatButtons.map(({ label, icon: Icon, command }) => (
+            <FormatButton
+              key={label}
+              icon={<Icon size={18} />}
+              label={label}
+              onClick={() => applyFormat(command)}
+            />
+          ))}
           <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
