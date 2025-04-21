@@ -6,7 +6,7 @@ export const mailSchema = z.object({
     message: "Message body must be at least 5 characters long",
   }),
   senderId: z.string().cuid().optional(),
-  recipient: z.string({ required_error: "Recipient is required" }),
+  recipients: z.array(z.string().min(1, "Recipient is required")).optional(),
   expiresAt: z.coerce.date().optional(),
   files: z
     .array(
