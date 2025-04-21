@@ -4,7 +4,8 @@ import { z } from "zod";
 export type Mail = z.infer<typeof mailSchema>;
 
 export interface SendMessageData {
-  title: string;
-  message: string;
+  recipients: string[];
+  subject: string;
+  body: string;
   file: File | null;
 }
