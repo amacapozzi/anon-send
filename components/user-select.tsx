@@ -1,18 +1,10 @@
 "use client"; // This directive is needed for interactive components [^1]
 
 import type React from "react";
-
+import { type User } from "@/types/user";
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { Badge } from "./ui/badge";
-
-// Define the User type if not already imported
-interface User {
-  id: string;
-  alias: string;
-  name?: string;
-  avatar?: string;
-}
 
 interface UserMentionSelectorProps {
   users: User[];
@@ -47,7 +39,7 @@ export default function UserMentionSelector({
         (user) =>
           !selectedUsers.some((selected) => selected.id === user.id) &&
           (user.alias.toLowerCase().includes(mentionText.toLowerCase()) ||
-            user.name?.toLowerCase().includes(mentionText.toLowerCase()))
+            user.alias?.toLowerCase().includes(mentionText.toLowerCase()))
       )
     : [];
 
@@ -214,8 +206,8 @@ export default function UserMentionSelector({
               aria-selected={index === activeIndex}
             >
               <div className="font-medium">@{user.alias}</div>
-              {user.name && (
-                <div className="text-sm text-gray-500">{user.name}</div>
+              {user.alias && (
+                <div className="text-sm text-gray-500">{user.alias}</div>
               )}
             </div>
           ))}
