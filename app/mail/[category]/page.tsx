@@ -9,9 +9,7 @@ export default async function Page({
 
   return (
     <MailLayout>
-      <div>
-        
-      </div>
+      <div></div>
     </MailLayout>
   );
 }
