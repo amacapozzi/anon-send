@@ -107,7 +107,7 @@ export const SendMessageDialog = ({
           </DialogClose>
           <Button
             onClick={handleSubmit}
-            className="cursor-pointer bg-[#1447e6] text-white"
+            className="cursor-pointer bg-[#1447e6] hover:bg-[#1447e6]/50 text-white"
             type="submit"
           >
             Send message
