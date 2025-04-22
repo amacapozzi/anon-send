@@ -1,7 +1,8 @@
 export interface User {
   id: string;
   alias: string;
-  avatarUrl?: string;
+  password: string;
   publicProfile: boolean;
   createdAt: Date;
+  avatarUrl?: string | null;
 }
