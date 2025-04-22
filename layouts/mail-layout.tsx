@@ -1,5 +1,5 @@
 import { AppBreadcrumb } from "@/components/app-breadcrumb";
-import { AppSidebar } from "@/components/app-sidebar";
+import AppSidebarWrapper from "@/components/app-sidebar-wrapper";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -20,7 +20,7 @@ export default function MailLayout({ children }: MailLayoutProps) {
         } as React.CSSProperties
       }
     >
-      <AppSidebar />
+      <AppSidebarWrapper />
       <SidebarInset>
         <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-background p-4 font-[family-name:var(--font-geist-sans)]">
           <SidebarTrigger className="-ml-1" />
