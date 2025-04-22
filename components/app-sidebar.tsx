@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
+
 import { useCallback } from "react";
 import { NavUser } from "@/components/nav-user";
 import { Label } from "@/components/ui/label";
@@ -21,23 +22,29 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { mailData } from "@/consts/mail";
 import { AppSidebarOpenMessage } from "@/components/app-sidebar-open-message";
+import type { MailData } from "@/types/mail";
+import type { SessionUser } from "@/types/session";
+import { formatDateFromNow } from "@/utils/data";
+import { StatusBadge } from "@/components/status-badge";
+import Link from "next/link";
 
-// This is sample data
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  user,
+  initialMails,
+  ...props
+}: {
+  initialMails: MailData[];
+  user: SessionUser;
+} & React.ComponentProps<typeof Sidebar>) {
+  const [mailSubject, setMailSubject] = React.useState<string>("");
   const router = useRouter();
   const pathname = usePathname();
-
-  const [isOpenDialog, setIsOpenDialog] = React.useState(false);
-
-  // Note: I'm using state to show active item.
-  // IRL you should use the url/router.
+  const [mails, setMails] = React.useState<MailData[]>(initialMails);
 
   const activeItem = React.useMemo(() => {
     return mailData.navMain.find((item) => pathname === item.url);
   }, [pathname]);
 
-  const [mails, setMails] = React.useState(mailData.mails);
   const { setOpen } = useSidebar();
 
   const handleClick = useCallback(
@@ -47,8 +54,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     [router]
   );
 
-  const handleOpenDialog = () => {
-    setIsOpenDialog(true);
+  const filteredItems = () => {
+    if (!mailSubject) return mails;
+    return mails.filter((mail) => {
+      const query = mailSubject.toLowerCase();
+      return (
+        mail.subject.toLowerCase().includes(query) ||
+        mail.body.toLowerCase().includes(query) ||
+        mail.sender?.alias?.toLowerCase().includes(query)
+      );
+    });
   };
 
   return (
@@ -89,12 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         const mail = mailData.mails.sort(
                           () => Math.random() - 0.5
                         );
-                        setMails(
-                          mail.slice(
-                            0,
-                            Math.max(5, Math.floor(Math.random() * 10) + 1)
-                          )
-                        );
+
                         setOpen(true);
                       }}
                       isActive={activeItem?.title === item.title}
@@ -110,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <NavUser user={mailData.user} />
+          <NavUser user={user} />
         </SidebarFooter>
       </Sidebar>
 
@@ -127,26 +137,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Switch className="shadow-none" />
             </Label>
           </div>
-          <SidebarInput placeholder="Type to search..." />
+          <SidebarInput
+            onChange={(e) => setMailSubject(e.target.value)}
+            placeholder="Type to search..."
+          />
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
-              {mails.map((mail) => (
-                <a
-                  href=""
-                  key={mail.email}
+              {filteredItems().map((mail) => (
+                <Link
+                  href={`/mail/chat/${mail.id}`}
+                  key={mail.id}
                   className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 >
                   <div className="flex w-full items-center gap-2">
-                    <span>{mail.name}</span>{" "}
-                    <span className="ml-auto text-xs">{mail.date}</span>
+                    <span>{mail.sender?.alias}</span>
+                    <span className="ml-auto text-xs">
+                      {formatDateFromNow(mail.createdAt)}
+                    </span>
                   </div>
-                  <span className="font-medium">{mail.subject}</span>
-                  <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
-                    {mail.teaser}
-                  </span>
-                </a>
+                  <span className="font-medium">Re: {mail.subject}</span>
+                  <div className="flex w-full items-start justify-between gap-2">
+                    <span className="line-clamp-2 flex-1 whitespace-break-spaces text-xs">
+                      {mail.body}
+                    </span>
+                    <StatusBadge status={mail.read ? "read" : "unread"} />
+                  </div>
+                </Link>
               ))}
             </SidebarGroupContent>
           </SidebarGroup>
