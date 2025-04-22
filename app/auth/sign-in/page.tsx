@@ -12,10 +12,12 @@ import { SignInFormValues } from "@/types/auth";
 import { signInSchema } from "@/schemas/auth";
 import { AuthInput } from "@/components/auth-input";
 import clsx from "clsx";
-import { object } from "zod";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { routes } from "@/consts/routes";
 
 export default function SignIn() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -41,6 +43,10 @@ export default function SignIn() {
           borderColor: "#3a3a48",
         },
       });
+
+      setTimeout(() => {
+        router.push(routes.mail.inbox);
+      }, 1000);
     } else {
       const key = Object.keys(error ?? {})[0];
       const description = (error as any)?.[key]?.message ?? "Unexpected error.";
