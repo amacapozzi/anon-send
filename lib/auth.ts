@@ -29,3 +29,8 @@ export const getCurrentUserServer = async (): Promise<SessionUser | null> => {
     return null;
   }
 };
+
+export async function logout() {
+  const cookieStore = cookies();
+  (await cookieStore).delete("session");
+}
