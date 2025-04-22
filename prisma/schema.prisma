@@ -12,17 +12,19 @@ datasource db {
 }
 
 model User {
-    id            String        @id @default(cuid())
-    alias         String        @unique
-    password      String
-    publicProfile Boolean       @default(true)
-    createdAt     DateTime      @default(now())
-    messages      Message[]     @relation("SentMessages")
-    views         MessageView[]
-    avatarUrl     String?
-    blocked       BlockedUser[] @relation("Blocker")
-    blockedBy     BlockedUser[] @relation("Blocked")
-    Recipient     Recipient[]
+    id                      String                    @id @default(cuid())
+    alias                   String                    @unique
+    password                String
+    publicProfile           Boolean                   @default(true)
+    createdAt               DateTime                  @default(now())
+    messages                Message[]                 @relation("SentMessages")
+    views                   MessageView[]
+    avatarUrl               String?
+    blocked                 BlockedUser[]             @relation("Blocker")
+    blockedBy               BlockedUser[]             @relation("Blocked")
+    Recipient               Recipient[]
+    Conversation            Conversation[]
+    ConversationParticipant ConversationParticipant[]
 }
 
 model BlockedUser {
@@ -39,8 +41,34 @@ model BlockedUser {
     @@unique([blockerId, blockedId])
 }
 
+model Conversation {
+    id        String    @id @default(cuid())
+    subject   String
+    creatorId String?
+    creator   User?     @relation(fields: [creatorId], references: [id])
+    messages  Message[]
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    participants ConversationParticipant[]
+}
+
+model ConversationParticipant {
+    id             String       @id @default(cuid())
+    conversationId String
+    userId         String
+    user           User         @relation(fields: [userId], references: [id])
+    conversation   Conversation @relation(fields: [conversationId], references: [id])
+    joinedAt       DateTime     @default(now())
+
+    @@unique([conversationId, userId])
+}
+
 model Message {
-    id        String        @id @default(cuid())
+    id             String        @id @default(cuid())
+    conversationId String?
+    conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
     subject   String
     body      String
     encrypted Boolean       @default(false)
@@ -49,8 +77,8 @@ model Message {
     files     File[]
     views     MessageView[]
     createdAt DateTime      @default(now())
-    expiresAt DateTime? // for autodestruct
-    maxViews  Int? // max allowed views
+    expiresAt DateTime?
+    maxViews  Int?
     isDeleted Boolean       @default(false)
 
     recipients Recipient[]
@@ -62,7 +90,8 @@ model Recipient {
     message   Message @relation(fields: [messageId], references: [id])
 
     userId String
-    user   User   @relation(fields: [userId], references: [id])
+    user   User    @relation(fields: [userId], references: [id])
+    read   Boolean @default(false)
 
     createdAt DateTime @default(now())
 
