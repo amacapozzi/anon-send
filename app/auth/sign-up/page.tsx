@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useRouter } from "next/navigation";
 import { generateRandomAlias } from "@/lib/utils";
 import { AuthSlider } from "@/components/auth-slider";
 import { SignUpFormValues } from "@/types/auth";
@@ -22,6 +23,7 @@ import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 
 export default function SignUp() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
@@ -66,6 +68,9 @@ export default function SignUp() {
         },
         description: "Please wait while we redirect you to your dashboard...",
       });
+      setTimeout(() => {
+        router.push("/auth/sign-in");
+      }, 2500);
     } else {
       const key = Object.keys(error ?? {})[0];
       const description = (error as any)?.[key]?.message ?? "Unexpected error.";
