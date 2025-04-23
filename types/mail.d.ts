@@ -16,7 +16,6 @@ export type MailData = {
   body: string;
   sender: {
     id: string;
-    password: string;
     alias: string;
     publicProfile: boolean;
     createdAt: Date;
