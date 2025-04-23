@@ -16,7 +16,12 @@ export async function middleware(request: NextRequest) {
 
   try {
     await jwtVerify(token, secret);
-    return NextResponse.next();
+
+    const response = NextResponse.next();
+    response.cookies.set("currentPath", request.nextUrl.pathname, {
+      path: "/",
+    });
+    return response;
   } catch (e) {
     return NextResponse.redirect(
       new URL(routes.authRoutes.signIn, request.url)
