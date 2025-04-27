@@ -1,15 +1,21 @@
-export const formattingActions = {
-  bold: () => applyCommand("bold"),
-  italic: () => applyCommand("italic"),
-  underline: () => applyCommand("underline"),
-  list: () => applyCommand("insertUnorderedList"),
+export const handleEditorChange = (
+  editorRef: React.RefObject<HTMLElement>,
+  handleChange: (field: string, value: string) => void
+) => {
+  if (editorRef.current) {
+    const content = editorRef.current.innerHTML;
+    handleChange("body", content);
+  }
 };
 
-function applyCommand(command: string) {
-  const textarea = document.getElementById("message-textarea");
-  if (textarea) {
-    textarea.focus();
+export const applyFormat = (
+  command: string,
+  editorRef: React.RefObject<HTMLElement>,
+  handleChange: (field: string, value: string) => void
+) => {
+  document.execCommand(command, false);
+  if (editorRef.current) {
+    editorRef.current.focus();
+    handleEditorChange(editorRef, handleChange);
   }
-
-  document.execCommand(command);
-}
+};
