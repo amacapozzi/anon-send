@@ -25,7 +25,6 @@ import {
 import type { SendMessageData } from "@/types/mail";
 import { FormatButton } from "@/components/format-button";
 import { Bold, Italic, Underline, List } from "lucide-react";
-import { formattingActions } from "@/utils/format";
 import { formatButtons } from "@/consts/formatActionts";
 
 interface Attachment {
