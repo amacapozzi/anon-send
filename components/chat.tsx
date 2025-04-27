@@ -2,12 +2,21 @@
 
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, X, ImageIcon, File, Check } from "lucide-react";
+import {
+  Send,
+  Paperclip,
+  X,
+  ImageIcon,
+  File,
+  Check,
+  CheckCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import Image from "next/image";
 import type { Message } from "@/types/message";
 import type { User } from "@/types/user";
+import { wasMessageRead } from "@/utils/message";
 
 interface ChatProps {
   initialMessages: Message[];
@@ -20,6 +29,14 @@ export default function Chat({ initialMessages, user }: ChatProps) {
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  messages.forEach((msg) => {
+    console.log(
+      msg.recipients.map((r) => {
+        console.log(r.read);
+      })
+    );
+  });
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -108,7 +125,7 @@ export default function Chat({ initialMessages, user }: ChatProps) {
               </div>
 
               <div
-                className={`flex items-center gap-1 mt-1 ${
+                className={`flex items-center gap-1 mt-2 ${
                   isCurrentUser(message.sender.id)
                     ? "justify-end"
                     : "justify-start"
@@ -117,7 +134,9 @@ export default function Chat({ initialMessages, user }: ChatProps) {
                 <span className="text-xs text-gray-500">
                   {formatTime(new Date(message.createdAt))}
                 </span>
-                {isCurrentUser(message.sender.id) && message.isDeleted && (
+                {isCurrentUser(message.sender.id) && wasMessageRead(message) ? (
+                  <CheckCheck className="w-4 h-4 text-gray-400" />
+                ) : (
                   <Check className="w-4 h-4 text-gray-400" />
                 )}
               </div>
